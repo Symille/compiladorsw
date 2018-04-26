@@ -19,7 +19,7 @@ public class CompiladorSW {
         //Lexico
         GramaticaswLexer lexer = new GramaticaswLexer(stream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-         System.out.println("quero é passar em complica");
+         System.out.println("quero é passar em complica este perido");
         //Sintatico
         GramaticaswParser parser = new GramaticaswParser(tokens);
         ParseTree tree = parser.prog();

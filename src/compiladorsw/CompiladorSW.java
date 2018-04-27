@@ -14,6 +14,7 @@ public class CompiladorSW {
     //pequena alteração
      public static void main(String[] args) throws IOException {
         String fileName = "src/compiladorsw/entrada.sw";
+        /* fazer convertar todas a letras para minusculo*/
         InputStream input = new FileInputStream(fileName);
         ANTLRInputStream stream = new ANTLRInputStream(input);
         //Lexico

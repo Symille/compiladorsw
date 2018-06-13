@@ -1,14 +1,11 @@
-program Somatorio { 
-  int: qde;
-  float: 
-        soma, num;
-  int : a,b,c,b,a;
-  boolean: a;
-  
-  block {
-    print("Somatorio e Media de Numeros Reais");
-    print("Digite Numero? ");
-    read(a,b,b10,a);
-  }
-}
-  float: media;
+    int main()
+    {
+        int i, sum = 0;
+       
+        for ( i = 1; i <= LAST; i++ ) {
+          sum += i;
+        } /*-for-*/
+        printf("sum = %d\n", sum);
+
+        return 0;
+    }

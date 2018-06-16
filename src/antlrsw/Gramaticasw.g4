@@ -2,7 +2,7 @@ grammar Gramaticasw;
 
 programa: 'program' Identificador '{' declaracoes?  block '}'; // estrutura basica
 
-declaracoes
+declaracoes //forçando derivação e esquerda
     : declaracao
     | declaracoes declaracao
     ;
@@ -19,94 +19,80 @@ constantes
     | 'const' 'float' Identificador '=' TipoFloat 
     | 'const' 'boolean' Identificador '=' TipoBoolean 
     ;
+
 variaveis: tipo ':' listaVariaveis ;
 
-funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' blockItemLista? 'return' '(' expressao? ')' '}' ;
+funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' corpoFuncao '}' ;
+
+corpoFuncao //forçando deviraçao a esquerda
+    :   itemFuncao
+    |   corpoFuncao itemFuncao
+    ;
+
+itemFuncao
+    : funcaoIF // ter if
+    | funcaoFor // ter for
+    | incrementar // incrementar
+    | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
+    | Identificador '=' expressao ';' // fazer atribuicao   
+    | 'return' '(' expressao? ')' ';' // fazer return
+    ;
+expressao
+    : subExpressao
+    | expressao operacao subExpressao
+    |  '(' expressao ')'
+    ;
+subExpressao
+    :   atribuicao
+    |   Identificador'(' listaVariaveis? ')' //chamada de funcao
+    |   Identificador'(' expressao? ')' //chamada de funcao    
+    ;
 
 directFunc
     :  tipo ':' Identificador 
     |  directFunc ',' tipo  ':' Identificador 
     ;
        
-//declaração de variaveis
-
-
-listaVariaveis
+listaVariaveis //declaração de variaveis
     : Identificador
     | Identificador '=' valor
     | listaVariaveis ',' Identificador
     ;                  
 
 // definição do bloco
-block: 'block' '{' blockCorpo? '}';
+block: 'block' '{' corpoBlock? '}';
 
 // corpo do bloco
-blockCorpo
-    :   blockCorpoItem
-    |   blockCorpo blockCorpoItem
-    ;
-
-blockCorpoItem
-    :   expressao? ';'
-    |   decIF
-    |   decFor         
-    ;
-
-// corpo da funcao 
-blockItemLista
+corpoBlock
     :   blockItem
-    |   blockItemLista blockItem
+    |   corpoBlock blockItem
     ;
 
 blockItem
-    :   expressao? ';'
-    |   decIF
-    |   decFor  
-    |  'return' '(' expressao? ')' ';'  // dentro da funçao posso chamar o return  
+    : blockIF 
+    | blockFor 
+    | incrementar
+    | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
+    | Identificador '=' expressao';'   
     ;
 
-// corpo geral
-expressao
-    :   expressaoItens
-    |   expressao expressaoItens
-    ;
+blockIF: 'if' '(' expressaoListaCondicao ')' '{' corpoBlock '}' ('else' '{' corpoBlock '}' )? ;
+funcaoIF: 'if' '(' expressaoListaCondicao ')' '{' corpoFuncao '}' ('else' '{' corpoFuncao '}' )? ;
 
-expressaoItens 
-    :  operadorIcremental Identificador // x++ ou x--   
-    |  Identificador operadorIcremental // ++x ou --x 
-    |  Identificador  '='  subExpressao
-    ;
-
-subExpressao
-    :   item
-    |   Identificador'(' listaVariaveis? ')' //funcao
-    |   subExpressao operacaoAdicao '(' expressaoItens? ')'
-    |   subExpressao '++'
-    |   subExpressao '--'
-    |   subExpressao operacaoAdicao item
-    ;
-item
-    :   atribuicao
-    |   '(' expressao ')'    
-    ;
-
-// fim corpo geral
-
-decIF: 'if' '(' expressaoCondicao ')' blockItem ('else' blockItem)? ;
-
-expressaoCondicao
-    :  expressaoCondicao operacaoOU
+expressaoListaCondicao
+    :  expressaoListaCondicao operacaoOU
     |  operacaoOU
     |  TipoBoolean 
     |  expressao
     ;
      
 //declaração do dfor
-decFor:  'for' '(' forCondition ')' blockItem;
+funcaoFor:  'for' '(' forCondition ')' '{' corpoFuncao '}' ;
+blockFor:  'for' '(' forCondition ')' '{' corpoBlock '}';
 
 forCondition
-    :   variaveis? ';' expressaoCondicao? ';' expressao?
-    |   expressao? ';' expressaoCondicao? ';' expressao?
+    :   variaveis? ';' expressaoListaCondicao? ';' expressao?
+    |   expressao? ';' expressaoListaCondicao? ';' expressao?
     ;
 
  operacaoOU
@@ -125,7 +111,7 @@ operacaoIGUAL
     | operacaoIGUAL '!=' operecaoCOMP
     ;
   
-   operecaoCOMP
+ operecaoCOMP
     :  operacaoAdicao
     |   operecaoCOMP '<'operacaoAdicao
     |   operecaoCOMP '>'operacaoAdicao
@@ -140,13 +126,16 @@ operacaoAdicao
     ;
    
 operacaoMultiplicacao
-    :  subExpressao
-    |  operacaoMultiplicacao '*'subExpressao
-    |  operacaoMultiplicacao '/'subExpressao
+    :  expressao
+    |  operacaoMultiplicacao '*' expressao
+    |  operacaoMultiplicacao '/' expressao
     ;
-    
-operadorIcremental: '++' | '--';
- 
+
+incrementar 
+    :  ( '++' | '--') Identificador // x++ ou x--   
+    |  Identificador ( '++' | '--') // ++x ou --x 
+    ;
+
 atribuicao
     : Identificador
     | valor
@@ -158,6 +147,7 @@ valor
     |  TipoString
     ;
 
+operacao: '+' | '-' | '*' | '/' ;
 tipo: Int | Float | Boolean | String;
 
 TipoInt: '0' | NonZeroDigit (Digits? ) ;

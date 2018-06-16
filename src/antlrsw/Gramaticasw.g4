@@ -33,6 +33,8 @@ itemFuncao
     : funcaoIF // ter if
     | funcaoFor // ter for
     | incrementar // incrementar
+    | print
+    | read
     | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
     | Identificador '=' expressao ';' // fazer atribuicao   
     | 'return' '(' expressao? ')' ';' // fazer return
@@ -57,6 +59,7 @@ listaVariaveis //declaração de variaveis
     : Identificador
     | Identificador '=' valor
     | listaVariaveis ',' Identificador
+    | Identificador'(' listaVariaveis? ')'
     ;                  
 
 // definição do bloco
@@ -72,6 +75,8 @@ blockItem
     : blockIF 
     | blockFor 
     | incrementar
+    | print
+    | read
     | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
     | Identificador '=' expressao';'   
     ;
@@ -147,59 +152,30 @@ valor
     |  TipoString
     ;
 
+print: 'print' '(' TipoString (',' Identificador)* ')' ';' ;
+read: 'read' '(' Identificador ')' ';' ;
+
 operacao: '+' | '-' | '*' | '/' ;
 tipo: Int | Float | Boolean | String;
 
 TipoInt: '0' | NonZeroDigit (Digits? ) ;
+TipoFloat: Digits '.' Digits? |	'.' Digits ;
+TipoBoolean: 'TRUE' | 'FALSE' ;
+TipoString: '"' StringCharacters? '"' ;
+
 fragment Digits: Digit( Digit)? ;
 fragment Digit : '0' |	NonZeroDigit ;
 fragment NonZeroDigit :	[1-9] ;
-
-TipoFloat
-	:	Digits '.' Digits? 
-	|	'.' Digits 	
-	;
-
-TipoBoolean
-	:	'TRUE'
-	|	'FALSE'
-	;
-
-// 
-CharacterLiteral
-	:	'\'' SingleCharacter '\''
-	|	'\'' EscapeSequence '\''
-	;
-
-fragment
-SingleCharacter
-	:	~['\\\r\n]
-	;
-
-// §3.10.5 String Literals
-
-TipoString: '"' StringCharacters? '"' ;
-
-fragment
-StringCharacters
-	:	StringCharacter+
-	;
-
-fragment
-StringCharacter
-	:	~["\\\r\n]
-	|	EscapeSequence
-	;
-
-// §3.10.6 Escape Sequences for Character and String Literals
-
-fragment
-EscapeSequence
-	:	'\\' [btnfr"'\\]	
+fragment StringCharacters: StringCharacter+ ;
+fragment StringCharacter 
+        : ~["\\\r\n]
+	| '\\' [btnfr"'\\]
 	;
 
 Program: 'program';
 Block:   'block';
+Print: 'print' ;
+Read: 'read' ;
 Func: 'func';
 Break:   'break';
 String: 'string';
@@ -235,41 +211,9 @@ Atribuir : '=';
 Iqual : '==';
 Diferente : '!=';
 
-Identificador: JavaLetter JavaLetterOrDigit*;
+Identificador: [a-zA-Z$_] [a-zA-Z0-9$_]*;
 
-fragment
-JavaLetter
-	:	[a-zA-Z$_] // these are the "java letters" below 0x7F
-	|	// covers all characters above 0x7F which are not a surrogate
-		~[\u0000-\u007F\uD800-\uDBFF]
-		{Character.isJavaIdentifierStart(_input.LA(-1))}?
-	|	// covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
-		[\uD800-\uDBFF] [\uDC00-\uDFFF]
-		{Character.isJavaIdentifierStart(Character.toCodePoint((char)_input.LA(-2), (char)_input.LA(-1)))}?
-	;
 
-fragment
-JavaLetterOrDigit
-	:	[a-zA-Z0-9$_] // these are the "java letters or digits" below 0x7F
-	|	// covers all characters above 0x7F which are not a surrogate
-		~[\u0000-\u007F\uD800-\uDBFF]
-		{Character.isJavaIdentifierPart(_input.LA(-1))}?
-	|	// covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
-		[\uD800-\uDBFF] [\uDC00-\uDFFF]
-		{Character.isJavaIdentifierPart(Character.toCodePoint((char)_input.LA(-2), (char)_input.LA(-1)))}?
-	;
-
-//
-// Whitespace and comments
-//
-
-WS  :  [ \t\r\n\u000C]+ -> skip
-    ;
-
-COMMENT
-    :   '/*' .*? '*/' -> channel(HIDDEN)
-    ;
-
-LINE_COMMENT
-    :   '//' ~[\r\n]* -> channel(HIDDEN)
-    ;
+WS: [ \t\r\n\u000C]+ -> skip ;
+COMMENT :   '/*' .*? '*/' -> channel(HIDDEN) ;
+LINE_COMMENT:   '//' ~[\r\n]* -> channel(HIDDEN) ;

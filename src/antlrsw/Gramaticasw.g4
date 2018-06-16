@@ -1,6 +1,6 @@
 grammar Gramaticasw;
 
-corpo: 'program' Identificador '{' declaracoes  block '}'; // estrutura basica
+programa: 'program' Identificador '{' declaracoes?  block '}'; // estrutura basica
 
 declaracoes
     : declaracao
@@ -10,17 +10,18 @@ declaracoes
 declaracao
     : constantes ';'  
     | variaveis ';'     
-    | funcao ';' 
+    | funcao
     ;
 
 constantes
-    : 'string' Identificador '='  TipoString ';'
-    | 'const' 'int' Identificador '='  TipoInt ';'
-    | 'const' 'float' Identificador '=' TipoFloat ';'
-    | 'const' 'boolean' Identificador '=' TipoBoolean ';'
+    : 'string' Identificador '='  TipoString 
+    | 'const' 'int' Identificador '='  TipoInt 
+    | 'const' 'float' Identificador '=' TipoFloat 
+    | 'const' 'boolean' Identificador '=' TipoBoolean 
     ;
 variaveis: tipo ':' listaVariaveis ;
-funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' blockItemLista? 'return' expressao?'}' ;
+
+funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' blockItemLista? 'return' '(' expressao? ')' '}' ;
 
 directFunc
     :  tipo ':' Identificador 
@@ -61,7 +62,7 @@ blockItem
     :   expressao? ';'
     |   decIF
     |   decFor  
-    |  'return' expressao? ';'  // dentro da funçao posso chamar o return  
+    |  'return' '(' expressao? ')' ';'  // dentro da funçao posso chamar o return  
     ;
 
 // corpo geral
@@ -94,10 +95,9 @@ item
 decIF: 'if' '(' expressaoCondicao ')' blockItem ('else' blockItem)? ;
 
 expressaoCondicao
-    :  expressaoCondicao operacaoOU expressao 
-    |  expressaoCondicao operacaoOU item 
+    :  expressaoCondicao operacaoOU
+    |  operacaoOU
     |  TipoBoolean 
-    |  item
     |  expressao
     ;
      
@@ -141,15 +141,10 @@ operacaoAdicao
    
 operacaoMultiplicacao
     :  subExpressao
-    |   operacaoMultiplicacao '*'subExpressao
-    |   operacaoMultiplicacao '/'subExpressao
+    |  operacaoMultiplicacao '*'subExpressao
+    |  operacaoMultiplicacao '/'subExpressao
     ;
     
-identifierList
-    :   Identificador
-    |   identifierList ',' Identificador
-    ;
- 
 operadorIcremental: '++' | '--';
  
 atribuicao
@@ -158,9 +153,9 @@ atribuicao
     ;
 valor
     :  TipoBoolean
-    |   TipoFloat
-    |   TipoInt
-    |   TipoString
+    |  TipoFloat
+    |  TipoInt
+    |  TipoString
     ;
 
 tipo: Int | Float | Boolean | String;
@@ -180,8 +175,7 @@ TipoBoolean
 	|	'FALSE'
 	;
 
-// §3.10.4 Character Literals
-
+// 
 CharacterLiteral
 	:	'\'' SingleCharacter '\''
 	|	'\'' EscapeSequence '\''

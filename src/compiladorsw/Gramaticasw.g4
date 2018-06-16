@@ -1,464 +1,184 @@
 grammar Gramaticasw;
 
-prog: 'program' Identificador '{' preBloco bloco '}' ;
+corpo: 'program' Identificador '{' declaracoes  block '}'; // estrutura basica
 
-preBloco
-    : expVariaveis* 
-    | expConstantes*
-    | expFuncoes*
+declaracoes
+    : declaracao
+    | declaracoes declaracao
+    ;
+     
+declaracao
+    : constantes ';'  
+    | variaveis ';'     
+    | funcao ';' 
     ;
 
-expVariaveis : tipo ':' listaIndentificador ';' ;
+constantes
+    : 'string' Identificador '='  TipoString ';'
+    | 'const' 'int' Identificador '='  TipoInt ';'
+    | 'const' 'float' Identificador '=' TipoFloat ';'
+    | 'const' 'boolean' Identificador '=' TipoBoolean ';'
+    ;
+variaveis: tipo ':' listaVariaveis ;
+funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' blockItemLista? 'return' expressao?'}' ;
 
-expConstantes
-    : 'const' 'int' Identificador '=' tipoInt ';'
-    | 'const' 'float' Identificador '=' tipoFloat ';'
-    | 'const' 'string' Identificador '=' tipoStringl';'
-    | 'const' 'boolean' Identificador '=' tipoBoolean';'    
+directFunc
+    :  tipo ':' Identificador 
+    |  directFunc ',' tipo  ':' Identificador 
+    ;
+       
+//declaração de variaveis
+
+
+listaVariaveis
+    : Identificador
+    | Identificador '=' valor
+    | listaVariaveis ',' Identificador
+    ;                  
+
+// definição do bloco
+block: 'block' '{' blockCorpo? '}';
+
+// corpo do bloco
+blockCorpo
+    :   blockCorpoItem
+    |   blockCorpo blockCorpoItem
     ;
 
-expFuncoes : 'func' tipo Identificador '(' listaVariaveisFunc* ')' '{' corpoFunc '}' ;
-
-listaIndentificador : Indentificador (',' listaIndentificador )* ;
-
-listaVariaveisFunc : tipo ':' Indentificador (',' expVariaveisFunc )*;
-
-bloco: 'block' '{' corpo '}';
-
-corpo
-    : expPrint ';' corpo*  // print
-    | expRead  ';' corpo*  // read    |  
-    | atribuicao ';' corpo* // atribuição
-    | expressao ';' corpo*  //expressao 
-    | Identificador '(' listaVariaveisFunc* ')' ';' corpo* // chamar funcao
-    | expFor ';' corpo* // chamar 
-    | expIF ';' corpo*
+blockCorpoItem
+    :   expressao? ';'
+    |   decIF
+    |   decFor         
     ;
 
-corpoFunc: corpo 'return' expressao ;
-
-primaryExpression  // 
-    :   Identificador // letra (letra | numero )*
-    |   Constant   // constante inteira, real ou caractere
-    |   tipoStringl+ // nao sei o que é
-    |   '(' expressao ')' //    
-    |   '(' compoundStatement ')' // Blocks (GCC extension)
-    |   '(' unaryExpression ',' typeName ')'
-    |   '(' typeName ',' unaryExpression ')'
+// corpo da funcao 
+blockItemLista
+    :   blockItem
+    |   blockItemLista blockItem
     ;
 
-genericAssociation
-    :   typeName ':' assignmentExpression
-    |   'default' ':' assignmentExpression
+blockItem
+    :   expressao? ';'
+    |   decIF
+    |   decFor  
+    |  'return' expressao? ';'  // dentro da funçao posso chamar o return  
     ;
 
-postfixExpression
-    :   primaryExpression   
-    |   postfixExpression '(' argumentExpressionList? ')'
-    |   postfixExpression '.' Identificador   
-    |   postfixExpression '++'
-    |   postfixExpression '--'
-    |   '(' typeName ')' '{' initializerList '}'
-    |   '(' typeName ')' '{' initializerList ',' '}'
-    |   '(' typeName ')' '{' initializerList '}'
-    |   '(' typeName ')' '{' initializerList ',' '}'
+// corpo geral
+expressao
+    :   expressaoItens
+    |   expressao expressaoItens
     ;
 
-argumentExpressionList
-    :   assignmentExpression
-    |   argumentExpressionList ',' assignmentExpression
+expressaoItens 
+    :  operadorIcremental Identificador // x++ ou x--   
+    |  Identificador operadorIcremental // ++x ou --x 
+    |  Identificador  '='  subExpressao
     ;
 
-unaryExpression
-    :   postfixExpression
-    |   '++' unaryExpression
-    |   '--' unaryExpression
-    |   unaryOperator castExpression 
-    |   '&&' Identificador // GCC extension address of label
+subExpressao
+    :   item
+    |   Identificador'(' listaVariaveis? ')' //funcao
+    |   subExpressao operacaoAdicao '(' expressaoItens? ')'
+    |   subExpressao '++'
+    |   subExpressao '--'
+    |   subExpressao operacaoAdicao item
+    ;
+item
+    :   atribuicao
+    |   '(' expressao ')'    
     ;
 
-unaryOperator
-    :   '*' | '+' | '-' | '!'
+// fim corpo geral
+
+decIF: 'if' '(' expressaoCondicao ')' blockItem ('else' blockItem)? ;
+
+expressaoCondicao
+    :  expressaoCondicao operacaoOU expressao 
+    |  expressaoCondicao operacaoOU item 
+    |  TipoBoolean 
+    |  item
+    |  expressao
+    ;
+     
+//declaração do dfor
+decFor:  'for' '(' forCondition ')' blockItem;
+
+forCondition
+    :   variaveis? ';' expressaoCondicao? ';' expressao?
+    |   expressao? ';' expressaoCondicao? ';' expressao?
     ;
 
-castExpression
-    :   '(' typeName ')' castExpression
-    |   unaryExpression
-    |   DigitSequence // for
+ operacaoOU
+    :  operacaoE
+    |   operacaoOU '||'operacaoE
     ;
-
-multiplicativeExpression
-    :   castExpression
-    |   multiplicativeExpression '*' castExpression
-    |   multiplicativeExpression '/' castExpression
-    |   multiplicativeExpression '%' castExpression
+ 
+operacaoE
+    : operacaoIGUAL
+    |  operacaoE '&&' operacaoIGUAL
     ;
-
-additiveExpression
-    :   multiplicativeExpression
-    |   additiveExpression '+' multiplicativeExpression
-    |   additiveExpression '-' multiplicativeExpression
+ 
+operacaoIGUAL
+    : operecaoCOMP
+    | operacaoIGUAL '==' operecaoCOMP
+    | operacaoIGUAL '!=' operecaoCOMP
     ;
-
-relationalExpression
-    :   additiveExpression
-    |   relationalExpression '<' additiveExpression
-    |   relationalExpression '>' additiveExpression
-    |   relationalExpression '<=' additiveExpression
-    |   relationalExpression '>=' additiveExpression
+  
+   operecaoCOMP
+    :  operacaoAdicao
+    |   operecaoCOMP '<'operacaoAdicao
+    |   operecaoCOMP '>'operacaoAdicao
+    |   operecaoCOMP '<='operacaoAdicao
+    |   operecaoCOMP '>='operacaoAdicao
     ;
-
-equalityExpression
-    :   relationalExpression
-    |   equalityExpression '==' relationalExpression
-    |   equalityExpression '!=' relationalExpression
+   
+operacaoAdicao
+    :   operacaoMultiplicacao
+    |  operacaoAdicao '+' operacaoMultiplicacao
+    |  operacaoAdicao '-' operacaoMultiplicacao
     ;
-
-andExpression
-    :   equalityExpression
-      ;
-
-logicalAndExpression
-    :   inclusiveOrExpression
-    |   logicalAndExpression '&&' inclusiveOrExpression
+   
+operacaoMultiplicacao
+    :  subExpressao
+    |   operacaoMultiplicacao '*'subExpressao
+    |   operacaoMultiplicacao '/'subExpressao
     ;
-
-logicalOrExpression
-    :   logicalAndExpression
-    |   logicalOrExpression '||' logicalAndExpression
-    ;
-
-conditionalExpression
-    :   logicalOrExpression ('?' expressao ':' conditionalExpression)?
-    ;
-
-assignmentExpression
-    :   conditionalExpression
-    |   unaryExpression assignmentOperator assignmentExpression
-    |   DigitSequence // for
-    ;
-
-assignmentOperator
-    :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
-    ;
-
-expressao //usado
-    :   assignmentExpression
-    |   expressao ',' assignmentExpression
-    ;
-
-constantExpression
-    :   conditionalExpression
-    ;
-
-declaration
-    :   declarationSpecifiers initDeclaratorList ';'
-    | 	declarationSpecifiers ';'
-    |   staticAssertDeclaration
-    ;
-
-declarationSpecifiers
-    :   declarationSpecifier+
-    ;
-
-declarationSpecifiers2
-    :   declarationSpecifier+
-    ;
-
-declarationSpecifier
-    :   tipo
-    |   typeQualifier
-    |   functionSpecifier
-    |   alignmentSpecifier
-    ;
-
-initDeclaratorList
-    :   initDeclarator
-    |   initDeclaratorList ',' initDeclarator
-    ;
-
-initDeclarator
-    :   declarator
-    |   declarator '=' initializer
-    ;
-
-tipo
-    :   'int'
-    |   'float'  
-    |   'boolean'
-    |   'string'   
-    ;
-
-structDeclarationList
-    :   structDeclaration
-    |   structDeclarationList structDeclaration
-    ;
-
-structDeclaration
-    :   specifierQualifierList structDeclaratorList? ';'
-    |   staticAssertDeclaration
-    ;
-
-specifierQualifierList
-    :   tipo specifierQualifierList?
-    |   typeQualifier specifierQualifierList?
-    ;
-
-structDeclaratorList
-    :   structDeclarator
-    |   structDeclaratorList ',' structDeclarator
-    ;
-
-declarator
-    :   pointer? directDeclarator gccDeclaratorExtension*
-    ;
-
-directDeclarator
-    :   Identificador
-    |   '(' declarator ')'
-    |   directDeclarator '[' typeQualifierList? assignmentExpression? ']'
-    |   directDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'
-    |   directDeclarator '[' typeQualifierList 'static' assignmentExpression ']'
-    |   directDeclarator '[' typeQualifierList? '*' ']'
-    |   directDeclarator '(' parameterTypeList ')'
-    |   directDeclarator '(' identifierList? ')'
-    |   Identificador ':' DigitSequence  // bit field
-    |   '(' tipo? pointer directDeclarator ')' // function pointer like: (__cdecl *f)
-    ;
-
-gccAttributeList
-    :   gccAttribute (',' gccAttribute)*
-    |   // empty
-    ;
-
-typeQualifierList
-    :   typeQualifier
-    |   typeQualifierList typeQualifier
-    ;
-
-parameterTypeList
-    :   parameterList
-    |   parameterList ',' '...'
-    ;
-
-parameterList
-    :   parameterDeclaration
-    |   parameterList ',' parameterDeclaration
-    ;
-
-parameterDeclaration
-    :   declarationSpecifiers declarator
-    |   declarationSpecifiers2 abstractDeclarator?
-    ;
-
+    
 identifierList
     :   Identificador
     |   identifierList ',' Identificador
     ;
-
-typeName
-    :   specifierQualifierList abstractDeclarator?
+ 
+operadorIcremental: '++' | '--';
+ 
+atribuicao
+    : Identificador
+    | valor
+    ;
+valor
+    :  TipoBoolean
+    |   TipoFloat
+    |   TipoInt
+    |   TipoString
     ;
 
-abstractDeclarator
-    :   pointer
-    |   pointer? directAbstractDeclarator gccDeclaratorExtension*
-    ;
+tipo: Int | Float | Boolean | String;
 
-directAbstractDeclarator
-    :   '(' abstractDeclarator ')' gccDeclaratorExtension*
-    |   '[' typeQualifierList? assignmentExpression? ']'
-    |   '[' 'static' typeQualifierList? assignmentExpression ']'
-    |   '[' typeQualifierList 'static' assignmentExpression ']'
-    |   '[' '*' ']'
-    |   '(' parameterTypeList? ')' gccDeclaratorExtension*
-    |   directAbstractDeclarator '[' typeQualifierList? assignmentExpression? ']'
-    |   directAbstractDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'
-    |   directAbstractDeclarator '[' typeQualifierList 'static' assignmentExpression ']'
-    |   directAbstractDeclarator '[' '*' ']'
-    |   directAbstractDeclarator '(' parameterTypeList? ')' gccDeclaratorExtension*
-    ;
+TipoInt: '0' | NonZeroDigit (Digits? ) ;
+fragment Digits: Digit( Digit)? ;
+fragment Digit : '0' |	NonZeroDigit ;
+fragment NonZeroDigit :	[1-9] ;
 
-initializerList
-    :   designation? initializer
-    |   initializerList ',' designation? initializer
-    ;
-
-designation
-    :   designatorList '='
-    ;
-
-designatorList
-    :   designator
-    |   designatorList designator
-    ;
-
-designator
-    :   '[' constantExpression ']'
-    |   '.' Identificador
-    ;
-
-corpo_IF_For // usado
-    :   labeledStatement
-    |   compoundStatement
-    |   expressaoStatement
-    |   expIF
-    |   expFor
-    |   jumpStatement
-    ;
-
-compoundStatement
-    :   '{' blockItemList? '}'
-    ;
-
-blockItemList
-    :   blockItem
-    |   blockItemList blockItem
-    ;
-
-blockItem
-    :   corpo_IF_For
-    |   declaration
-    ;
-
-expressaoStatement :  expressao? ';' ;
-
-expIF: 'if' '(' expressao ')' corpo_IF_For ('else' corpo_IF_For)? ;
-expFor: For '(' forCondition ')' corpo_IF_For ;
-
-forCondition
-	:   forDeclaration ';' forExpression? ';' forExpression?
-	|   expressao? ';' forExpression? ';' forExpression?
+TipoFloat
+	:	Digits '.' Digits? 
+	|	'.' Digits 	
 	;
 
-forDeclaration
-    :   declarationSpecifiers initDeclaratorList
-	| 	declarationSpecifiers
-    ;
-
-forExpression
-    :   assignmentExpression
-    |   forExpression ',' assignmentExpression
-    ;
-
-jumpStatement
-    :  'break' ';'
-    |  'return' expressao? ';'  ;
-
-compilationUnit
-    :   translationUnit? EOF
-    ;
-
-translationUnit
-    :   externalDeclaration
-    |   translationUnit externalDeclaration
-    ;
-
-externalDeclaration
-    :   functionDefinition
-    |   declaration
-    |   ';' // stray ;
-    ;
-
-functionDefinition
-    :   declarationSpecifiers? declarator declarationList? compoundStatement
-    ;
-
-declarationList
-    :   declaration
-    |   declarationList declaration
-    ;
-
-Block:   'block';
-Program: 'program';
-Break:   'break';
-String : 'string';
-Const :'const';
-Else : 'else';
-Float : 'float';
-For : 'for';
-If : 'if';
-Int : 'int';
-Return : 'return';
-String : 'string';
-Boolean : 'boolean';
-LeftParen : '(';
-RightParen : ')';
-LeftBrace : '{';
-RightBrace : '}';
-Less : '<';
-LessEqual : '<=';
-Greater : '>';
-GreaterEqual : '>=';
-Plus : '+';
-PlusPlus : '++';
-Minus : '-';
-MinusMinus : '--';
-Star : '*';
-Div : '/';
-Mod : '%';
-AndAnd : '&&';
-OrOr : '||';
-Not : '!';
-Question : '?';
-Colon : ':';
-Semi : ';';
-Comma : ',';
-Assign : '=';
-// '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
-StarAssign : '*=';
-DivAssign : '/=';
-ModAssign : '%=';
-PlusAssign : '+=';
-MinusAssign : '-=';
-Equal : '==';
-NotEqual : '!=';
-
-Identificador : IdentificadorNondigit(   IdentificadorNondigit |   Digit )* ;
-
-fragment
-IdentificadorNondigit
-    :   Nondigit
-    |   UniversalCharacterName
-    //|   // other implementation-defined characters...
-    ;
-
-fragment valor
-    : tipoInt
-    | RealConstante
-    | StringContante
-    ;
-
-fragment Nondigit : [a-zA-Z_] ;
-fragment Digit : [0-9] ;
-
-fragment tipoInt: NaozeroDigito Digit*;
-fragment NaozeroDigito: [1-9];
-
-fragment
-FloatingConstant
-    :   DecimalFloatingConstant
-    |   HexadecimalFloatingConstant
-    ;
-
-fragment
-DecimalFloatingConstant
-    :   tipoFloat ExponentPart? FloatingSuffix?
-    |   DigitSequence ExponentPart FloatingSuffix?
-    ;
-
-fragment
-tipoFloat
-    :   DigitSequence? '.' DigitSequence
-    |   DigitSequence '.'
-    ;
-
-// §3.10.3 Boolean Literals
-
-tipoBoolean
-    : 'TRUE'
-    | 'FALSE'
-    ;
+TipoBoolean
+	:	'TRUE'
+	|	'FALSE'
+	;
 
 // §3.10.4 Character Literals
 
@@ -474,38 +194,98 @@ SingleCharacter
 
 // §3.10.5 String Literals
 
-tipoStringl :	'"' StringCharacters? '"' ;
+TipoString: '"' StringCharacters? '"' ;
 
-fragment StringCharacters : StringCharacter+ ;
+fragment
+StringCharacters
+	:	StringCharacter+
+	;
 
 fragment
 StringCharacter
-    :	~["\\\r\n]
-    |	EscapeSequence
-    ;
+	:	~["\\\r\n]
+	|	EscapeSequence
+	;
 
 // §3.10.6 Escape Sequences for Character and String Literals
 
 fragment
 EscapeSequence
-    :	'\\' [btnfr"'\\]
-    |	OctalEscape
-    |   UnicodeEscape // This is not in the spec but prevents having to preprocess the input
+	:	'\\' [btnfr"'\\]	
+	;
+
+Program: 'program';
+Block:   'block';
+Func: 'func';
+Break:   'break';
+String: 'string';
+Const :'const';
+Else : 'else';
+Float : 'float';
+For : 'for';
+If : 'if';
+Int : 'int';
+Return : 'return';
+Boolean : 'boolean';
+AbrirParentese : '(';
+FecharParentese : ')';
+AbrirChave : '{';
+FechaChave : '}';
+MenorQ : '<';
+MenorIqualQ : '<=';
+MaiorQ : '>';
+MaiorIqualQ : '>=';
+Mais : '+';
+Incrementar : '++';
+Menus : '-';
+Decrementar : '--';
+Multiplicar : '*';
+Dividir : '/';
+LogicaE : '&&';
+LogicaOU : '||';
+Negacao : '!';
+DoisPonto : ':';
+PontoFinal : ';';
+Virgula : ',';
+Atribuir : '=';
+Iqual : '==';
+Diferente : '!=';
+
+Identificador: JavaLetter JavaLetterOrDigit*;
+
+fragment
+JavaLetter
+	:	[a-zA-Z$_] // these are the "java letters" below 0x7F
+	|	// covers all characters above 0x7F which are not a surrogate
+		~[\u0000-\u007F\uD800-\uDBFF]
+		{Character.isJavaIdentifierStart(_input.LA(-1))}?
+	|	// covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
+		[\uD800-\uDBFF] [\uDC00-\uDFFF]
+		{Character.isJavaIdentifierStart(Character.toCodePoint((char)_input.LA(-2), (char)_input.LA(-1)))}?
+	;
+
+fragment
+JavaLetterOrDigit
+	:	[a-zA-Z0-9$_] // these are the "java letters or digits" below 0x7F
+	|	// covers all characters above 0x7F which are not a surrogate
+		~[\u0000-\u007F\uD800-\uDBFF]
+		{Character.isJavaIdentifierPart(_input.LA(-1))}?
+	|	// covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
+		[\uD800-\uDBFF] [\uDC00-\uDFFF]
+		{Character.isJavaIdentifierPart(Character.toCodePoint((char)_input.LA(-2), (char)_input.LA(-1)))}?
+	;
+
+//
+// Whitespace and comments
+//
+
+WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
-fragment 
-Sign
-    :   '+' | '-'
+COMMENT
+    :   '/*' .*? '*/' -> channel(HIDDEN)
     ;
 
-DigitSequence : Digit+;
-tipoStringl : EncodingPrefix? '"' SCharSequence? '"' ;
-Whitespace:[ \t]+ -> skip ;
-Newline
-    :   (   '\r' '\n'?
-        |   '\n'
-        )
-        -> skip
+LINE_COMMENT
+    :   '//' ~[\r\n]* -> channel(HIDDEN)
     ;
-BlockComment : '/*' .*? '*/'-> skip ;
-LineComment : '//' ~[\r\n]* -> skip ;

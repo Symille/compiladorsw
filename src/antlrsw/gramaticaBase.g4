@@ -32,9 +32,7 @@ for (<variáveis de controle>; <condição>; <incrementos>){
 
 
 */
-@header{
-    package antlrsw;
-}
+
 prog: 
     'program' ID '{' dec* func* bloco '}' ;
 dec : 

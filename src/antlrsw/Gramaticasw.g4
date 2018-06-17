@@ -2,19 +2,15 @@ grammar Gramaticasw;
 
 programa: 'program' Identificador '{' declaracoes?  block '}'; // estrutura basica
 
-declaracoes //forçando derivação e esquerda
+declaracoes
     : declaracao
     | declaracoes declaracao
     ;
      
-declaracao
-    : constantes ';'  
-    | variaveis ';'     
-    | funcao
-    ;
+declaracao: constantes ';' | variaveis ';' | funcao ;
 
 constantes
-    : 'string' Identificador '='  TipoString 
+    : 'const' 'string' Identificador '='  TipoString 
     | 'const' 'int' Identificador '='  TipoInt 
     | 'const' 'float' Identificador '=' TipoFloat 
     | 'const' 'boolean' Identificador '=' TipoBoolean 
@@ -24,30 +20,50 @@ variaveis: tipo ':' listaVariaveis ;
 
 funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' corpoFuncao '}' ;
 
-corpoFuncao //forçando deviraçao a esquerda
+block: 'block' '{' corpoBlock? '}';
+
+corpoFuncao
     :   itemFuncao
     |   corpoFuncao itemFuncao
     ;
 
+corpoBlock
+    :   itemBlock
+    |   corpoBlock itemBlock
+    ;
+
 itemFuncao
-    : funcaoIF // ter if
-    | funcaoFor // ter for
-    | incrementar // incrementar
+    : funcaoIF  
+    | funcaoFor 
+    | itemGeral    
+    | 'return' '(' expressao? ')' ';' // fazer return
+    ;
+
+itemBlock
+    : blockIF 
+    | blockFor  
+    | itemGeral
+    ;
+
+itemGeral
+    : incrementar
     | print
     | read
     | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
-    | Identificador '=' expressao ';' // fazer atribuicao   
-    | 'return' '(' expressao? ')' ';' // fazer return
+    | Identificador '=' expressao ';' // fazer atribuicao  
     ;
+
+
 expressao
     : subExpressao
     | expressao operacao subExpressao
     |  '(' expressao ')'
     ;
 subExpressao
-    :   atribuicao
-    |   Identificador'(' listaVariaveis? ')' //chamada de funcao
-    |   Identificador'(' expressao? ')' //chamada de funcao    
+    : incrementar  
+    | atribuicao
+    | Identificador'(' listaVariaveis? ')' //chamada de funcao
+    | Identificador'(' expressao? ')' //chamada de funcao    
     ;
 
 directFunc
@@ -62,25 +78,6 @@ listaVariaveis //declaração de variaveis
     | Identificador'(' listaVariaveis? ')'
     ;                  
 
-// definição do bloco
-block: 'block' '{' corpoBlock? '}';
-
-// corpo do bloco
-corpoBlock
-    :   blockItem
-    |   corpoBlock blockItem
-    ;
-
-blockItem
-    : blockIF 
-    | blockFor 
-    | incrementar
-    | print
-    | read
-    | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
-    | Identificador '=' expressao';'   
-    ;
-
 blockIF: 'if' '(' expressaoListaCondicao ')' '{' corpoBlock '}' ('else' '{' corpoBlock '}' )? ;
 funcaoIF: 'if' '(' expressaoListaCondicao ')' '{' corpoFuncao '}' ('else' '{' corpoFuncao '}' )? ;
 
@@ -90,10 +87,9 @@ expressaoListaCondicao
     |  TipoBoolean 
     |  expressao
     ;
-     
-//declaração do dfor
-funcaoFor:  'for' '(' forCondition ')' '{' corpoFuncao '}' ;
-blockFor:  'for' '(' forCondition ')' '{' corpoBlock '}';
+
+funcaoFor: 'for' '(' forCondition ')' '{' corpoFuncao '}' ;
+blockFor: 'for' '(' forCondition ')' '{' corpoBlock '}';
 
 forCondition
     :   variaveis? ';' expressaoListaCondicao? ';' expressao?
@@ -141,43 +137,26 @@ incrementar
     |  Identificador ( '++' | '--') // ++x ou --x 
     ;
 
-atribuicao
-    : Identificador
-    | valor
-    ;
-valor
-    :  TipoBoolean
-    |  TipoFloat
-    |  TipoInt
-    |  TipoString
+atribuicao: Identificador | valor ;
+
+valor: TipoBoolean |  TipoFloat |  TipoInt |  TipoString ;
+
+print: 'print' '(' impressao ')' ';' ;
+impressao
+    :TipoString (',' Identificador)*
+    | Identificador 
     ;
 
-print: 'print' '(' TipoString (',' Identificador)* ')' ';' ;
 read: 'read' '(' Identificador ')' ';' ;
-
 operacao: '+' | '-' | '*' | '/' ;
 tipo: Int | Float | Boolean | String;
-
-TipoInt: '0' | NonZeroDigit (Digits? ) ;
-TipoFloat: Digits '.' Digits? |	'.' Digits ;
-TipoBoolean: 'TRUE' | 'FALSE' ;
-TipoString: '"' StringCharacters? '"' ;
-
-fragment Digits: Digit( Digit)? ;
-fragment Digit : '0' |	NonZeroDigit ;
-fragment NonZeroDigit :	[1-9] ;
-fragment StringCharacters: StringCharacter+ ;
-fragment StringCharacter 
-        : ~["\\\r\n]
-	| '\\' [btnfr"'\\]
-	;
 
 Program: 'program';
 Block:   'block';
 Print: 'print' ;
 Read: 'read' ;
 Func: 'func';
-Break:   'break';
+Break: 'break';
 String: 'string';
 Const :'const';
 Else : 'else';
@@ -211,8 +190,17 @@ Atribuir : '=';
 Iqual : '==';
 Diferente : '!=';
 
+TipoInt: '0' | NonZeroDigit (Digits? ) ;
+TipoFloat: Digits '.' Digits? |	'.' Digits ;
+TipoBoolean: 'TRUE' | 'FALSE' ;
+TipoString: '"' StringCharacters? '"' ;
 Identificador: [a-zA-Z$_] [a-zA-Z0-9$_]*;
 
+fragment Digits: Digit( Digit)? ;
+fragment Digit : '0' |	NonZeroDigit ;
+fragment NonZeroDigit :	[1-9] ;
+fragment StringCharacters: StringCharacter+ ;
+fragment StringCharacter: ~["\\\r\n] | '\\' [btnfr"'\\]	;
 
 WS: [ \t\r\n\u000C]+ -> skip ;
 COMMENT :   '/*' .*? '*/' -> channel(HIDDEN) ;

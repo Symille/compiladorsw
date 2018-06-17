@@ -19,10 +19,15 @@ program exemplo
         print ("Resultado: ", valor);
         return (TRUE);
     }
-
+    
     block{
         print ("Fatorial de N. Digite o número?");
         read (numero);
         resultado (fatorial(numero));
+        
+        for( int: i = 0; i < 10; i++)
+        {
+            print(i);
+        }
     }
 }

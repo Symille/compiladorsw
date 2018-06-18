@@ -40,6 +40,7 @@ atribuicao: IDENTIFICADOR '=' expressao ;
 
 expressao
     : subExpressao
+    | '-'expressao
     | expressao operacao subExpressao
     |  '(' expressao ')'
     ;
@@ -106,6 +107,7 @@ operacaoMultiplicacao
 valor: 'TRUE' | 'FALSE' |  FLOAT |  INT |  STRING;
 
 print: 'print' '(' impressao ')' ';' ;
+
 impressao
     :STRING(',' IDENTIFICADOR)*
     | IDENTIFICADOR 
@@ -117,9 +119,6 @@ tipo: TipoInt | TipoFloat | TipoBoolean | TipoString;
 bool: 'TRUE' | 'FALSE' ;
 
 //refazer o int e float e negativos
-INT : '-'?[0-9]+;
-FLOAT:  [0-9]*'.'[0-9]+?;
-STRING: '"' ('""'|~'"')* '"' ;
 PROGRAM: 'program';
 BROCK: 'block';
 PRINT: 'print' ;
@@ -160,6 +159,9 @@ IGUAL : '==';
 DIFERENTE : '!=';
 TRUE: 'TRUE';
 FALSE: 'FALSE';
+INT : [0-9]+;
+FLOAT: '-'?[0-9]*'.'[0-9]+?;
+STRING: '"' ('""'|~'"')* '"' ;
 IDENTIFICADOR: [a-zA-Z][a-zA-Z0-9]*;
 WS: [ \t\r\n]+ -> skip ;
 COMMENT :   '/*' .*? '*/' -> channel(HIDDEN) ;

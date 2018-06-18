@@ -2,6 +2,6 @@ program exemplo
 {
    block
     {
-      x = b - funcao(a, 10);           
+      x = b - funcao(a*2, 10);           
     }
 }

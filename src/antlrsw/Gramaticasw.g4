@@ -60,6 +60,7 @@ decFuncao
 listaVariaveis 
     : IDENTIFICADOR
     | valor  
+    | expressao
     | listaVariaveis ',' ( IDENTIFICADOR |  valor )
     | IDENTIFICADOR'(' listaVariaveis? ')'
     ;                  

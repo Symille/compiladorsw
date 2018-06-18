@@ -1,127 +1,98 @@
 grammar Gramaticasw;
 
-programa: 'program' Identificador '{' declaracoes?  block '}'; // estrutura basica
-
-declaracoes
-    : declaracao
-    | declaracoes declaracao
-    ;
+programa: 'program' IDENTIFICADOR '{' constantes* variaveis* funcao*  block '}' EOF; // estrutura basica
      
-declaracao: constantes ';' | variaveis ';' | funcao ;
-
 constantes
-    : 'const' 'string' Identificador '='  TipoString 
-    | 'const' 'int' Identificador '='  TipoInt 
-    | 'const' 'float' Identificador '=' TipoFloat 
-    | 'const' 'boolean' Identificador '=' TipoBoolean 
+    : 'const' 'string' IDENTIFICADOR '='  STRING ';'
+    | 'const' 'int' IDENTIFICADOR '='  INT ';'
+    | 'const' 'float' IDENTIFICADOR '=' FLOAT ';'
+    | 'const' 'boolean' IDENTIFICADOR '=' bool ';'
     ;
 
-variaveis: tipo ':' listaVariaveis ;
+variaveis: tipo ':' listaVariaveis ';' ;
 
-funcao : 'func' tipo  Identificador '(' directFunc? ')' '{' corpoFuncao '}' ;
+funcao : 'func' tipo  IDENTIFICADOR '(' decFuncao? ')' '{' corpoFuncao* '}' ;
 
-block: 'block' '{' corpoBlock? '}';
+block: 'block' '{' corpoBlock* '}';
 
 corpoFuncao
-    :   itemFuncao
-    |   corpoFuncao itemFuncao
-    ;
-
-corpoBlock
-    :   itemBlock
-    |   corpoBlock itemBlock
-    ;
-
-itemFuncao
     : funcaoIF  
     | funcaoFor 
     | itemGeral    
-    | 'return' '(' expressao? ')' ';' // fazer return
+    | 'return' '(' expressao? ')' ';' 
     ;
 
-itemBlock
+corpoBlock
     : blockIF 
     | blockFor  
     | itemGeral
     ;
 
 itemGeral
-    : incrementar
+    : IDENTIFICADOR ( '++' | '--') ';'
     | print
     | read
-    | Identificador'(' listaVariaveis? ')' ';'//chamada de funcao
-    | Identificador '=' expressao ';' // fazer atribuicao  
+    | IDENTIFICADOR'(' listaVariaveis? ')' ';'
+    | atribuicao ';'
     ;
 
+atribuicao: IDENTIFICADOR '=' expressao ;
 
 expressao
     : subExpressao
     | expressao operacao subExpressao
     |  '(' expressao ')'
     ;
+
 subExpressao
-    : incrementar  
-    | atribuicao
-    | Identificador'(' listaVariaveis? ')' //chamada de funcao
-    | Identificador'(' expressao? ')' //chamada de funcao    
+    : IDENTIFICADOR 
+    | valor 
+    | IDENTIFICADOR'(' listaVariaveis? ')' 
+    | IDENTIFICADOR'(' expressao? ')' 
     ;
 
-directFunc
-    :  tipo ':' Identificador 
-    |  directFunc ',' tipo  ':' Identificador 
+decFuncao
+    :  tipo ':' IDENTIFICADOR (',' IDENTIFICADOR )* 
+    |  decFuncao ';' tipo ':' IDENTIFICADOR(',' IDENTIFICADOR )* 
     ;
        
-listaVariaveis //declaração de variaveis
-    : Identificador
-    | Identificador '=' valor
-    | listaVariaveis ',' Identificador
-    | Identificador'(' listaVariaveis? ')'
+listaVariaveis 
+    : IDENTIFICADOR
+    | valor  
+    | listaVariaveis ',' IDENTIFICADOR
+    | IDENTIFICADOR'(' listaVariaveis? ')'
     ;                  
 
 blockIF: 'if' '(' expressaoListaCondicao ')' '{' corpoBlock '}' ('else' '{' corpoBlock '}' )? ;
 funcaoIF: 'if' '(' expressaoListaCondicao ')' '{' corpoFuncao '}' ('else' '{' corpoFuncao '}' )? ;
 
 expressaoListaCondicao
-    :  expressaoListaCondicao operacaoOU
-    |  operacaoOU
-    |  TipoBoolean 
+    :  expressaoListaCondicao operacaoIGUAL // eliminar ou e e
+    |  operacaoIGUAL
+    |  bool 
     |  expressao
     ;
 
-funcaoFor: 'for' '(' forCondition ')' '{' corpoFuncao '}' ;
+funcaoFor: 'for' '(' forCondition ')' '{' corpoFuncao '}';
 blockFor: 'for' '(' forCondition ')' '{' corpoBlock '}';
 
-forCondition
-    :   variaveis? ';' expressaoListaCondicao? ';' expressao?
-    |   expressao? ';' expressaoListaCondicao? ';' expressao?
-    ;
-
- operacaoOU
-    :  operacaoE
-    |   operacaoOU '||'operacaoE
-    ;
- 
-operacaoE
-    : operacaoIGUAL
-    |  operacaoE '&&' operacaoIGUAL
-    ;
- 
+forCondition: atribuicao? ';' expressaoListaCondicao? ';' atribuicao? ;
+   
 operacaoIGUAL
     : operecaoCOMP
-    | operacaoIGUAL '==' operecaoCOMP
-    | operacaoIGUAL '!=' operecaoCOMP
+    | expressao '==' expressao
+    | expressao '!=' expressao
     ;
   
  operecaoCOMP
-    :  operacaoAdicao
-    |   operecaoCOMP '<'operacaoAdicao
-    |   operecaoCOMP '>'operacaoAdicao
-    |   operecaoCOMP '<='operacaoAdicao
-    |   operecaoCOMP '>='operacaoAdicao
+    :   expressao '<' expressao
+    |   expressao '>'expressao
+    |   expressao '<='expressao
+    |   expressao '>='expressao
     ;
    
 operacaoAdicao
-    :   operacaoMultiplicacao
+    :  operacaoMultiplicacao
     |  operacaoAdicao '+' operacaoMultiplicacao
     |  operacaoAdicao '-' operacaoMultiplicacao
     ;
@@ -132,76 +103,64 @@ operacaoMultiplicacao
     |  operacaoMultiplicacao '/' expressao
     ;
 
-incrementar 
-    :  ( '++' | '--') Identificador // x++ ou x--   
-    |  Identificador ( '++' | '--') // ++x ou --x 
-    ;
-
-atribuicao: Identificador | valor ;
-
-valor: TipoBoolean |  TipoFloat |  TipoInt |  TipoString ;
+valor: 'TRUE' | 'FALSE' |  FLOAT |  INT |  STRING;
 
 print: 'print' '(' impressao ')' ';' ;
 impressao
-    :TipoString (',' Identificador)*
-    | Identificador 
+    :STRING(',' IDENTIFICADOR)*
+    | IDENTIFICADOR 
     ;
 
-read: 'read' '(' Identificador ')' ';' ;
+read: 'read' '(' IDENTIFICADOR(',' IDENTIFICADOR)* ')' ';' ;
 operacao: '+' | '-' | '*' | '/' ;
-tipo: Int | Float | Boolean | String;
+tipo: TipoInt | TipoFloat | TipoBoolean | TipoString;
+bool: 'TRUE' | 'FALSE' ;
 
-Program: 'program';
-Block:   'block';
-Print: 'print' ;
-Read: 'read' ;
-Func: 'func';
-Break: 'break';
-String: 'string';
-Const :'const';
-Else : 'else';
-Float : 'float';
-For : 'for';
-If : 'if';
-Int : 'int';
-Return : 'return';
-Boolean : 'boolean';
-AbrirParentese : '(';
-FecharParentese : ')';
-AbrirChave : '{';
-FechaChave : '}';
-MenorQ : '<';
-MenorIqualQ : '<=';
-MaiorQ : '>';
-MaiorIqualQ : '>=';
-Mais : '+';
-Incrementar : '++';
-Menus : '-';
-Decrementar : '--';
-Multiplicar : '*';
-Dividir : '/';
-LogicaE : '&&';
-LogicaOU : '||';
-Negacao : '!';
-DoisPonto : ':';
-PontoFinal : ';';
-Virgula : ',';
-Atribuir : '=';
-Iqual : '==';
-Diferente : '!=';
-
-TipoInt: '0' | NonZeroDigit (Digits? ) ;
-TipoFloat: Digits '.' Digits? |	'.' Digits ;
-TipoBoolean: 'TRUE' | 'FALSE' ;
-TipoString: '"' StringCharacters? '"' ;
-Identificador: [a-zA-Z$_] [a-zA-Z0-9$_]*;
-
-fragment Digits: Digit( Digit)? ;
-fragment Digit : '0' |	NonZeroDigit ;
-fragment NonZeroDigit :	[1-9] ;
-fragment StringCharacters: StringCharacter+ ;
-fragment StringCharacter: ~["\\\r\n] | '\\' [btnfr"'\\]	;
-
-WS: [ \t\r\n\u000C]+ -> skip ;
+//refazer o int e float e negativos
+INT : '-'?[0-9]+;
+FLOAT:  [0-9]*'.'[0-9]+?;
+STRING: '"' ('""'|~'"')* '"' ;
+PROGRAM: 'program';
+BROCK: 'block';
+PRINT: 'print' ;
+READ: 'read' ;
+FUNC: 'func';
+BREAK: 'break';
+TipoString: 'string';
+TipoFloat : 'float';
+TipoInt : 'int';
+TipoBoolean : 'boolean';
+CONST :'const';
+ELSE : 'else';
+FOR : 'for';
+IF : 'if';
+RETURN : 'return';
+APARENTESE : '(';
+FPARENTESE: ')';
+ACHAVE : '{';
+FCHAVE : '}';
+MENORQ : '<';
+MENORIGUALQ : '<=';
+MAIORQ : '>';
+MAIOREMENORQ : '>=';
+MAIS : '+';
+INCREMENTAR : '++';
+MENUS : '-';
+DECREMENTAR : '--';
+MULTIPLICAR : '*';
+DIVIDIR : '/';
+NEGACAO : '!';
+DOISPONTO : ':';
+PONTOVIRGULA : ';';
+PONTOFINAL: '.';
+ASPASDUPLAS: '"';
+VIRGULA : ',';
+ATRIBUIR : '=';
+IGUAL : '==';
+DIFERENTE : '!=';
+TRUE: 'TRUE';
+FALSE: 'FALSE';
+IDENTIFICADOR: [a-zA-Z][a-zA-Z0-9]*;
+WS: [ \t\r\n]+ -> skip ;
 COMMENT :   '/*' .*? '*/' -> channel(HIDDEN) ;
 LINE_COMMENT:   '//' ~[\r\n]* -> channel(HIDDEN) ;

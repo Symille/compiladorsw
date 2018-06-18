@@ -1,7 +1,7 @@
 program exemplo
 {
-    block
+   block
     {
-        if(g > c*3 );        
+      x = b - funcao(a, 10);           
     }
 }

@@ -1,11 +1,10 @@
 program exemplo
 {
-    block{
-        if( !(z > 10*p) )
+    block
+    {
+        if( !(2*5) )
         {
-            print(i);
+            x = -10;
         }
-
-      
     }
 }

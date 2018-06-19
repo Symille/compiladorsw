@@ -41,6 +41,7 @@ atribuicao: IDENTIFICADOR '=' expressao ;
 expressao
     : subExpressao
     | '-'expressao
+    | '!'expressao
     | expressao operacao subExpressao
     |  '(' expressao ')'
     ;
@@ -69,30 +70,28 @@ blockIF: 'if' '(' expressaoListaCondicao ')' '{' corpoBlock '}' ('else' '{' corp
 funcaoIF: 'if' '(' expressaoListaCondicao ')' '{' corpoFuncao '}' ('else' '{' corpoFuncao '}' )? ;
 
 expressaoListaCondicao
-    :  expressaoListaCondicao operacaoIGUAL // eliminar ou e e
-    |  operacaoIGUAL
+    :  expressaoListaCondicao operecaoCOMP // eliminar ou e e
+    |  operecaoCOMP
     |  bool 
-    |  expressao
+    |  expressao    
+    |  '!' '(' expressaoListaCondicao ')'
     ;
 
 funcaoFor: 'for' '(' forCondition ')' '{' corpoFuncao '}';
 blockFor: 'for' '(' forCondition ')' '{' corpoBlock '}';
 
 forCondition: atribuicao? ';' expressaoListaCondicao? ';' atribuicao? ;
-   
+
+ operecaoCOMP
+    :   operacaoIGUAL   
+    |   expressao ( '<'|'>'|'<='|'>=') expressao
+    ;
+ 
 operacaoIGUAL
-    : operecaoCOMP
-    | expressao '==' expressao
-    | expressao '!=' expressao
+    : operacaoAdicao
+    | expressao ( '==' | '!=') expressao
     ;
   
- operecaoCOMP
-    :   expressao '<' expressao
-    |   expressao '>'expressao
-    |   expressao '<='expressao
-    |   expressao '>='expressao
-    ;
-   
 operacaoAdicao
     :  operacaoMultiplicacao
     |  operacaoAdicao '+' operacaoMultiplicacao
@@ -166,4 +165,4 @@ STRING: '"' ('""'|~'"')* '"' ;
 IDENTIFICADOR: [a-zA-Z][a-zA-Z0-9]*;
 WS: [ \t\r\n]+ -> skip ;
 COMMENT :   '/*' .*? '*/' -> channel(HIDDEN) ;
-LINE_COMMENT:   '//' ~[\r\n]* -> channel(HIDDEN) ;
+LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN) ;

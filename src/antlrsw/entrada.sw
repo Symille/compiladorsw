@@ -1,7 +1,11 @@
 program exemplo
 {
-   block
-    {
-      x = b - funcao(a*2, 10);           
+    block{
+        if( !(z > 10*p) )
+        {
+            print(i);
+        }
+
+      
     }
 }

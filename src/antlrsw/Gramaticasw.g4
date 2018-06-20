@@ -1,6 +1,6 @@
 grammar Gramaticasw;
 
-programa: 'program' IDENTIFICADOR '{' constantes* variaveis* funcao*  block '}' EOF; 
+programa: 'program' IDENTIFICADOR '{' ( constantes | variaveis )* funcao*  block '}' EOF; 
      
 constantes
     : 'const' 'string' IDENTIFICADOR'='  STRING ';'
@@ -23,7 +23,7 @@ block: 'block' '{' corpoBlock* '}';
 corpoFuncao
     : funcaoIF  
     | funcaoFor 
-    | itemGeral    
+    | itemGeral ';'
     | 'return' '(' operacaoCOMP? ')' ';' 
     ;
 
@@ -34,7 +34,7 @@ corpoBlock
     ;
 
 itemGeral
-    : IDENTIFICADOR( '++' | '--') 
+    : incrementar
     | print
     | read
     | IDENTIFICADOR'(' listaVariaveis? ')' 
@@ -43,14 +43,14 @@ itemGeral
 
 atribuicao: IDENTIFICADOR '=' operacaoCOMP ;
 
-blockIF: 'if' '(' operacaoCOMP ')' '{' corpoBlock '}' ('else' '{' corpoBlock '}' )? ;
-funcaoIF: 'if' '(' operacaoCOMP ')' '{' corpoFuncao '}' ('else' '{' corpoFuncao '}' )? ;
+blockIF: 'if' '(' operacaoCOMP ')' '{' corpoBlock+ '}' ('else' '{' corpoBlock+ '}' )? ;
+funcaoIF: 'if' '(' operacaoCOMP ')' '{' corpoFuncao+ '}' ('else' '{' corpoFuncao+ '}' )? ;
 
-funcaoFor: 'for' '(' forCondition ')' '{' corpoFuncao '}';
-blockFor: 'for' '(' forCondition ')' '{' corpoBlock '}';
+funcaoFor: 'for' '(' forCondition ')' '{' corpoFuncao+ '}';
+blockFor: 'for' '(' forCondition ')' '{' corpoBlock+ '}';
 
-forCondition: atribuicao? ';' operacaoCOMP? ';' atribuicao? ;
-
+forCondition: atribuicao? ';' operacaoCOMP? ';' (  atribuicao | incrementar )? ;
+incrementar: IDENTIFICADOR( '++' | '--');
 operacaoCOMP
     : operacaoIGUAL
     | operacaoIGUAL ( '<'|'>'|'<='|'>=') operacaoIGUAL
@@ -75,7 +75,7 @@ operacaoMultiplicacao
 
 unario: '!' unarioExp | '-' unario | fator;
 
-unarioExp // inpedir !10
+unarioExp 
     : '!' unarioExp
     | '(' operacaoCOMP ')' 
     | IDENTIFICADOR    
@@ -97,14 +97,11 @@ listaVariaveis
     | IDENTIFICADOR'(' listaVariaveis? ')'
     ;       
 
-print: 'print' '(' impressao ')' ';' ;
+print: 'print' '(' impressao ')' ;
 
-impressao
-    :STRING(',' IDENTIFICADOR)*
-    | IDENTIFICADOR
-    ;
+impressao:operacaoCOMP(',' impressao)*;
 
-read: 'read' '(' IDENTIFICADOR(',' IDENTIFICADOR)* ')' ';' ;
+read: 'read' '(' IDENTIFICADOR(',' IDENTIFICADOR)* ')' ;
 
 valor: BOOLEAN | FLOAT | INT | STRING;
 tipo: TipoInt | TipoFloat | TipoBoolean | TipoString;
@@ -149,7 +146,7 @@ IGUAL : '==';
 DIFERENTE : '!=';
 BOOLEAN: 'TRUE'| 'FALSE';
 INT : [0-9]+;
-FLOAT: [0-9]*'.'[0-9]+?;
+FLOAT: [0-9]('.'[0-9]*)?;
 STRING: '"' ('""'|~'"')* '"' ;
 IDENTIFICADOR: [a-zA-Z][a-zA-Z0-9]*;
 WS: [ \t\r\n]+ -> skip ;
